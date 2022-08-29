@@ -13,22 +13,30 @@ sumEvens x = if even x then x + sumEvens(x-1) else sumEvens(x -1)
 
 --4
 sumEvens' :: Integer -> Integer
-sumEvens x = let xl = [1..]
+sumEvens' x = sum (filter even [1..x])
 
 --5
 collatz :: Integer -> Integer
 collatz 0 = 1
 collatz 1 = 1
-collatz n = if even n then collatz(n/2)
-collatz n = if odd n then collatz(3n+1)
-
+collatz x = if even x then collatz(div 2 x) else collatz(3*x+1)
 
 --6
+collatzCheck :: [Integer]
+collatzCheck = map collatz[1..100]
 
 --7
+multiplesOfFive :: [Integer]
+multiplesOfFive = [5, 10..100]
 
 --8
+init' :: [Integer] -> [Integer]
+init' = reverse . tail . reverse
 
 --9
+findEmpty :: [String]->Bool
+findEmpty = all null
 
 --10
+getLengths :: [String] -> [Int]
+getLengths = map length
