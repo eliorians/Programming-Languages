@@ -22,23 +22,25 @@ findOdd (x:xs) = if odd x then Just x else findOdd xs
 removeEmpty :: [String] -> [String]
 removeEmpty = filter (not . null)
 
---6
---subtractEach :: [(Integer, Integer)] -> [Integer]
---subtractEach [] = []
---subtractEach  ((x,y):ps) = map (x - y) ps
+--6 DONE
+subtractEach :: [(Integer, Integer)] -> [Integer]
+subtractEach [] = []
+subtractEach  ((x,y):ps) = (x - y) : subtractEach ps
 
---7
---makeGreeting :: Maybe String -> String
---makeGreeting Nothing x = putStr "Hello!"
---makeGreeting Just x = putStr ("Hello, " + x + "!")
+--7 DONE
+makeGreeting :: Maybe String -> String
+makeGreeting Nothing = "Hello!"
+makeGreeting (Just x) = "Hello, " ++ x ++ "!"
 
 --8 DONE
 catMaybes :: [Maybe a] -> [a]
 catMaybes ls = [x | Just x <- ls]
 
 --9
---classify :: [Either a b] -> ([a], [b])
---classify = 
+classify :: [Either a b] -> ([a], [b])
+classify [] = ([],[])
+classify (Left x:zs) = x : classify zs
+classify (Right y:zs) = y : classify zs
 
 --10 DONE
 isPrefix :: (Eq a) => [a] -> [a] -> Bool
