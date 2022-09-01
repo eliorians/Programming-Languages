@@ -36,11 +36,20 @@ makeGreeting (Just x) = "Hello, " ++ x ++ "!"
 catMaybes :: [Maybe a] -> [a]
 catMaybes ls = [x | Just x <- ls]
 
---9
+--9 DONE
 classify :: [Either a b] -> ([a], [b])
 classify [] = ([],[])
-classify (Left x:zs) = x : classify zs
-classify (Right y:zs) = y : classify zs
+classify xs = (leftList xs, rightList xs)
+
+leftList :: [Either a b] -> [a]
+leftList [] = []
+leftList (Left x:xs) = x : leftList xs
+leftList (Right x:xs) = leftList xs
+
+rightList :: [Either a b] -> [b]
+rightList [] = []
+rightList (Right x:xs) = x : rightList xs
+rightList (Left x:xs) = rightList xs
 
 --10 DONE
 isPrefix :: (Eq a) => [a] -> [a] -> Bool
