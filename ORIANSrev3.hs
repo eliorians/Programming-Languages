@@ -1,7 +1,7 @@
 
 --Bubble Sorting--
 
---1 done, add comments
+--1 done
 bubble :: Ord a => [a] -> [a]
 bubble [] = []
 bubble [x] = [x]
@@ -9,7 +9,7 @@ bubble (x:y:xs)
     |   y <= x = y : bubble(x:xs)
     |   otherwise = x :bubble(y:xs)
 
---2 done, add comments
+--2 done
 bubbleSort :: Ord a=> [a] -> [a]
 bubbleSort [] = []
 bubbleSort x = if new == x then x else bubbleSort new
@@ -55,13 +55,12 @@ replacePrefix (old, new) str = if isPrefix old str then     --conditon
     new ++ replacePrefix(old, new) (drop(length old) str)    --removes the prefix 
     else head str : replacePrefix(old, new) (tail str)      --2nd time through no prefix so we come here and append, will do it multiple times
 
---4 almost done
+--4 done
 replaceString :: (String, String) -> String -> String
-replaceString (_,_) [] = [] 
-replaceString (old, new) str = if findString old str then
-    replaceString(old, new) (drop(length old) str) ++ new 
-    else str
-     
+replaceString (_,_) [] = []
+replaceString (old, new) str = if isPrefix old str then
+    new ++ replacePrefix(old, new) (drop(length old) str)
+    else head str : replaceString(old, new) (tail str)
 
 --A simple cypher--
 
@@ -72,12 +71,12 @@ lookUp p ((x,y): ps)
     | x == p = y
     | otherwise = lookUp p ps
 
---2
---encode :: [(Char, Char)] -> String -> String
---encode [] _ = []
---encode [(_,_)] [] = []
---encode [(x, y)] str = 
+--2 done
+encode :: [(Char, Char)] -> String -> String
+encode xs [] = []
+encode [] (z:zs) = zs
+encode xs (z:zs) = lookUp z xs : encode xs zs
 
 --3
 makeTable :: String -> String -> [(Char, Char)]
-makeTable = error "error not finish"
+makeTable = zip
