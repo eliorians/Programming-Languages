@@ -20,7 +20,7 @@ bubbleSort x = if new == x then x else bubbleSort new
 
 --1 done
 findString :: String -> String -> Bool
-findString (_:_) []= False  --(_:_) doesnt matter what first input is, but ig 2nd is empty it is false
+findString (_:_) [] = False  --(_:_) doesnt matter what first input is, but if 2nd is empty it is false
 findString xs ys
     |   isPrefix xs ys = True
     |   findString xs (tail ys) = True  --tail takes everything but the first item, so the list shrinks
