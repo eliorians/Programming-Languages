@@ -1,8 +1,4 @@
 
---questions
---curry
--- ` `
-
 --currying and uncurrying--
 
 --1 done
@@ -22,9 +18,12 @@ uncurry' f (b,a) = f a b
 diff :: [Integer] -> [Integer] -> [Integer]
 diff = zipWith (-)
 
---2 
+--2 done but make it into a lambda?
 splice :: [String] -> [String] -> [String]
-splice = zipWith (++)
+splice = zipWith spliceHelp
+
+spliceHelp :: String -> String -> String
+spliceHelp a b = a++b++a
 
 --map--
 
@@ -35,7 +34,6 @@ sqLens = map ((^2) . fromIntegral . length)
 --2 done
 bang :: [String] -> [String]
 bang = map (++ "!")
-
 
 --filter--
 
@@ -58,14 +56,14 @@ findNum y (x:xs) = if y == x then True else findNum y xs
 findNum' :: Integer -> [Integer] -> Bool
 findNum' y = foldr (\ x -> (||) (y == x)) False
 
---2 recursive
---exists :: (a -> Bool) -> [a] -> Bool
---exists y [] = False
---exists y (x:xs) = 
+--2 recursive done
+exists :: (a -> Bool) -> [a] -> Bool
+exists f [] = False
+exists f (x:xs) = f x || exists f xs
 
---2 fold
---exists' :: (a -> Bool) -> [a] -> Bool
---exists' =
+--2 fold done
+exists' :: (a -> Bool) -> [a] -> Bool
+exists' f = foldl (\acc x -> f x || acc) False
 
 --3 recursive done
 noDups :: Eq a => [a] -> [a]
@@ -76,14 +74,14 @@ noDups (x:xs) = if x `elem` xs then noDups xs else x : noDups xs
 noDups' ::  Eq a => [a] -> [a]
 noDups' = foldl (\dup x -> if x `elem` dup then dup else dup ++ [x]) []
 
---4 recursive
---countOverflow :: Integer -> [String] -> Integer
---countOVerflow y [] = 0
---countOverflow y (x:xs) =
+--4 recursive done
+countOverflow :: Integer -> [String] -> Integer
+countOverflow y [] = 0
+countOverflow y (xs:xss) = if y < fromIntegral (length xs) then 1 + countOverflow y xss else countOverflow y xss
 
---4 fold
---countOverflow' :: Integer -> [String] -> Integer
---countOverflow' x xs = 
+--4 fold done
+countOverflow' :: Integer -> [String] -> Integer
+countOverflow' y = foldl (\x xs-> if y < fromIntegral (length xs) then 1 + x else x) 0
 
 --5 recursive done
 concatList :: [[a]] -> [a]
@@ -96,8 +94,9 @@ concatList' = foldr (++) []
 
 --6 recursive
 --bindList :: (a -> [b]) -> [a] -> [b]
---bindList = 
+--bindList f [] = []
+--bindList f (x:xs) = 
 
 --6 fold
---bindList :: (a -> [b]) -> [a] -> [b]
---bindList = 
+--bindList' :: (a -> [b]) -> [a] -> [b]
+--bindList' f xs = 
