@@ -20,10 +20,7 @@ diff = zipWith (-)
 
 --2 done but make it into a lambda?
 splice :: [String] -> [String] -> [String]
-splice = zipWith spliceHelp
-
-spliceHelp :: String -> String -> String
-spliceHelp a b = a++b++a
+splice = zipWith (\a b -> a ++ b ++ a)
 
 --map--
 
@@ -50,11 +47,11 @@ removeXs = filter (notElem 'X')
 --1 recursive done
 findNum :: Integer -> [Integer] -> Bool
 findNum y [] = False
-findNum y (x:xs) = if y == x then True else findNum y xs
+findNum y (x:xs) = (y == x) || findNum y xs
 
 --1 fold done
 findNum' :: Integer -> [Integer] -> Bool
-findNum' y = foldr (\ x -> (||) (y == x)) False
+findNum' y = foldr (\x -> (||) (y == x)) False
 
 --2 recursive done
 exists :: (a -> Bool) -> [a] -> Bool
@@ -92,11 +89,11 @@ concatList (xs:xss) = xs ++ concatList xss
 concatList' :: [[a]] -> [a]
 concatList' = foldr (++) []
 
---6 recursive
---bindList :: (a -> [b]) -> [a] -> [b]
---bindList f [] = []
---bindList f (x:xs) = 
+--6 recursive done
+bindList :: (a -> [b]) -> [a] -> [b]
+bindList f [] = []
+bindList f (xs:xss) = (f xs) ++ bindList f xss
 
---6 fold
---bindList' :: (a -> [b]) -> [a] -> [b]
---bindList' f xs = 
+--6 fold done
+bindList' :: (a -> [b]) -> [a] -> [b]
+bindList' f = foldr ((++) . f) []
