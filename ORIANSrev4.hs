@@ -36,9 +36,9 @@ bang = map (++ "!")
 
 --1 done
 digitsOnly :: [Integer] -> [Integer]
-digitsOnly = filter (\x -> (x > 0 ) && (x < 10))
+digitsOnly = filter (\x -> (x >= 0 ) && (x < 10))
 
---2 done
+--2 MUST ONLY FILTER STRINGS THAT BEGIN WITH X
 removeXs :: [String] -> [String]
 removeXs = filter (notElem 'X')
 
