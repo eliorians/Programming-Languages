@@ -1,11 +1,12 @@
-import System.Win32 (COORD(x))
 data LTree a = LLeaf a | LNode a (LTree a) (LTree a)
     deriving Show
 
+--comb is the recursive function passed (eg getLeaves t1)
+--base is the base case (eg leaf x)
+--and the current node/leaf
 foldTree :: (a -> b -> b -> b) -> (a -> b) -> LTree a -> b
 foldTree comb base (LLeaf x) = base x
-foldTree comb base (LNode y t1 t2) = comb y (foldTree comb base t1)
-                                            (foldTree comb base t2)
+foldTree comb base (LNode y t1 t2) = comb y (foldTree comb base t1) (foldTree comb base t2)
 
 --1 recursion done
 getLeaves :: LTree a -> [a]
@@ -41,7 +42,9 @@ occursInLeaves f (LNode x t1 t2) = occursInLeaves f t1 || occursInLeaves f t2
 --occursInLeaves' :: (a -> Bool) -> LTree a -> Bool
 
 --5 recursion
---checkNoCover :: (Eq a) => a -> LTree a -> Bool
+checkNoCover :: (Eq a) => a -> LTree a -> Bool
+checkNoCover f (LLeaf x) = f == x
+checkNoCover f (LNode x t1 t2) = if f == x then False else checkNoCover f t1 || checkNoCover f t2
 
 --5 fold
 --checkNoCover' :: (Eq a) => a -> LTree a -> Bool
