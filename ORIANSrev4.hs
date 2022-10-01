@@ -18,7 +18,7 @@ uncurry' f (b,a) = f a b
 diff :: [Integer] -> [Integer] -> [Integer]
 diff = zipWith (-)
 
---2 done but make it into a lambda?
+--2 done
 splice :: [String] -> [String] -> [String]
 splice = zipWith (\a b -> a ++ b ++ a)
 
