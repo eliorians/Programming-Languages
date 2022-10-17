@@ -51,23 +51,30 @@ lexer :: String -> [Token]
 --Base case
 lexer "" = []
 lexer (c:s) | isSpace c = lexer s
---Pars
-lexer ('(':s) = LPar : lexer s
-lexer (')':s) = RPar : lexer s
+--VSym
+lexer (c:s) | isAlpha c =
+  let (num,rst) = span (\x -> isAlphaNum x || x == '_') s
+   in VSym (c:num) : lexer rst
+--CSym
+lexer (c:s) | isDigit c =
+  let (num,rst) = span isDigit s
+   in CSym (read (c:num)) : lexer rst
 --BOps
 lexer ('/':'\\':s) = BOp AndOp : lexer s
 lexer ('\\':'/':s) = BOp OrOp : lexer s
 lexer ('-' : '>' :s) = BOp ImpOp : lexer s
 lexer ('<' : '-' : '>' :s) = BOp IffOp : lexer s
 lexer ('<' : '+' : '>':s) = BOp XorOp : lexer s
---VSym
-
---CSym
-lexer (c:s) | isDigit c =
-  let (num,rst) = span isDigit s
-   in CSym (read (c:num)) : lexer rst
 --NotOp
---PB
+lexer ('!':s) = NotOp : lexer s
+--Pars
+lexer ('(':s) = LPar : lexer s
+lexer (')':s) = RPar : lexer s
+--PB Prop
+
+
+
+
 
 
 --2.3 Parser
