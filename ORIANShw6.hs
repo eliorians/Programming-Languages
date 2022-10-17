@@ -1,3 +1,4 @@
+
 data LTree a = LLeaf a | LNode a (LTree a) (LTree a)
     deriving Show
 

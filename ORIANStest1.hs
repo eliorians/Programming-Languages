@@ -5,6 +5,10 @@
 mapAppend :: (a -> [b]) -> [a] -> [b]
 mapAppend f = foldr ((++) . f) []
 
+--map' :: (a -> b) -> [a] -> [b]
+--map' f [] = []
+--map' f (x:xs) = f x : map' f xs
+
 
 --recursive one
 --mapAppend' :: (a -> [b]) -> [a] -> [b]
