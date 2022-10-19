@@ -27,6 +27,7 @@ sr (PE e2 : BinOp PlusOp : PE e1 : s) q = sr (PE (Add e1 e2) : s) q --R3
 sr (PE e2 : BinOp MulOp : PE e1 : s) q = sr (PE (Mul e1 e2) : s) q --R3
 sr (PE e2 : BinOp SubOp : PE e1 : s) q = sr (PE (Sub e1 e2) : s) q --R3
 sr (PE e2 : BinOp DivOp : PE e1 : s) q = sr (PE (Div e1 e2) : s) q --R3
+sr (PE e2 : ) 
 sr (RPar : PE e : LPar : s) q          = sr (PE e : s) q
 sr s      (x:xs) = sr (x:s) xs
 sr s      [] = error ("Parse error: " ++ show s)
