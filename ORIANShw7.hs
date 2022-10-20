@@ -9,7 +9,7 @@ data Prop = Var Vars | Const Bool | And Prop Prop | Or Prop Prop | Not Prop
 
 prop1 = Var "X" `And` Var "Y"               -- X /\ Y
 prop2 = Var "X" `Imp` Var "Y"               -- X -> Y
-prop3 = Not (Var "X") `OR` Var "Y"          -- !X \/ Y
+prop3 = Not (Var "X") `Or` Var "Y"          -- !X \/ Y
 prop4 = Not (Var "X") `Iff` Not (Var "Y")   -- !X <-> !Y
 
 -- binary operators
@@ -24,7 +24,7 @@ data Token = VSym Vars | CSym Bool | BOp BOps | NotOp | LPar | RPar
 ---------------------------
 
 
---2.1 Evaluator
+--2.1 Evaluator done
 
 type Env = [(Vars,Bool)]
 eval :: Env -> Prop -> Bool
@@ -41,7 +41,7 @@ eval env (Xor f1 f2) = eval env f1 /= eval env f2
 
 
 
---2.2 Lexical Analysis
+--2.2 Lexical Analysis done
 
 lexer :: String -> [Token]
 --Base
@@ -70,7 +70,7 @@ lexer (')':s) = RPar : lexer s
 lexer s = error("Unrecognized Token: " ++ s)
 
 
---2.3 Parser
+--2.3 Parser done
 parseProp :: [Token] -> Prop
 parseProp ts = sr [] ts
 
@@ -86,7 +86,7 @@ sr (PB e2 : BOp OrOp : PB e1 : s) q = sr (PB (Or e1 e2) : s) q --R3
 sr (PB e2 : BOp ImpOp : PB e1 : s) q = sr (PB (Imp e1 e2) : s) q --R3
 sr (PB e2 : BOp IffOp : PB e1 : s) q = sr (PB (Iff e1 e2) : s) q --R3
 sr (PB e2 : BOp XorOp : PB e1 : s) q = sr (PB (Xor e1 e2) : s) q --R3
-sr (NotOp : PB e : s) q = sr (PB (Not e) : s) q
+sr (PB e : NotOp : s) q = sr (PB (Not e) : s) q
 --LPar, R Par
 sr (RPar : PB e : LPar : s) q = sr (PB e : s) q
 sr s (x:xs) = sr (x:s) xs
@@ -94,6 +94,7 @@ sr s [] = error ("Parse error: " ++ show s)
 
 
 --2.4 Searching for Truth Statment
+
 
 fv :: Prop -> [Vars]
 fv (Var v) = [v]
@@ -116,12 +117,14 @@ genEnvs (x:xs) = [ y:ys | y <- extend x, ys <- genEnvs xs ]
 extend :: Vars -> [(Vars, Bool)]
 extend x = [ (x,b) | b <- [True, False] ]
 
---sat :: Prop -> Bool
---sat x = evalAll x (genEnvs(fv x))
+evalAll :: Prop -> [Env] -> Env
+evalAll p [] = []
+evalAll p (key:keys) = if eval key p then key else evalAll p keys
 
 findSat :: Prop -> Maybe Env
-findSat x = eval (genEnvs(fv x)) x
+findSat x = evalAll x (genEnvs(fv x))
 
 
 --2.5 Putting it together
---solve :: String -> String
+solve :: String -> String
+solve s = if(findsat(parseProp(lexer s))) then "Satisfiable" else "No Solution"
