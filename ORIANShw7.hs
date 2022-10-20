@@ -2,7 +2,7 @@ import Data.Char
 import Data.List
 
 type Vars = String
-data Prop = Var Vars | Const Bool | And Prop Prop | OR Prop Prop | Not Prop
+data Prop = Var Vars | Const Bool | And Prop Prop | Or Prop Prop | Not Prop
             | Imp Prop Prop | Iff Prop Prop | Xor Prop Prop
     deriving (Show, Eq)
     --implication , equivalance, eXclusive OR
@@ -33,7 +33,7 @@ eval env (Var x) = case lookup x env of
     Just v  -> v
 eval env (Const b) = b
 eval env (And f1 f2) = eval env f1 && eval env f2
-eval env (OR f1 f2)  = eval env f1 || eval env f2
+eval env (Or f1 f2)  = eval env f1 || eval env f2
 eval env (Not f) = not (eval env f)
 eval env (Imp f1 f2) = eval env f1 <= eval env f2     --f1 implies f2
 eval env (Iff f1 f2) = eval env f1 == eval env f2
@@ -82,7 +82,7 @@ sr (VSym x : s) q = sr (PB (Var x) : s) q   --R1
 sr (CSym c : s) q = sr (PB (Const c) : s) q --R2
 --Bops
 sr (PB e2 : BOp AndOp : PB e1 : s) q = sr (PB (And e1 e2) : s) q --R3
-sr (PB e2 : BOp OrOp : PB e1 : s) q = sr (PB (OR e1 e2) : s) q --R3
+sr (PB e2 : BOp OrOp : PB e1 : s) q = sr (PB (Or e1 e2) : s) q --R3
 sr (PB e2 : BOp ImpOp : PB e1 : s) q = sr (PB (Imp e1 e2) : s) q --R3
 sr (PB e2 : BOp IffOp : PB e1 : s) q = sr (PB (Iff e1 e2) : s) q --R3
 sr (PB e2 : BOp XorOp : PB e1 : s) q = sr (PB (Xor e1 e2) : s) q --R3
@@ -94,7 +94,33 @@ sr s [] = error ("Parse error: " ++ show s)
 
 
 --2.4 Searching for Truth Statment
---findSat :: Prop -> Maybe
+
+fv :: Prop -> [Vars]
+fv (Var v) = [v]
+fv (Const b) = []
+fv (And x y) = noDups (fv x ++ fv y)
+fv (Or x y) = noDups (fv x ++ fv y)
+fv (Not x) = noDups (fv x)
+fv (Imp x y) = noDups (fv x ++ fv y)
+fv (Iff x y) = noDups (fv x ++ fv y)
+fv (Xor x y) = noDups (fv x ++ fv y)
+
+noDups :: Eq a => [a] -> [a]
+noDups [] = []
+noDups (x:xs) = x : noDups (filter (/= x) xs)
+
+genEnvs :: [Vars] -> [Env]
+genEnvs [] = [[]]
+genEnvs (x:xs) = [ y:ys | y <- extend x, ys <- genEnvs xs ]
+
+extend :: Vars -> [(Vars, Bool)]
+extend x = [ (x,b) | b <- [True, False] ]
+
+--sat :: Prop -> Bool
+--sat x = evalAll x (genEnvs(fv x))
+
+findSat :: Prop -> Maybe Env
+findSat x = eval (genEnvs(fv x)) x
 
 
 --2.5 Putting it together
