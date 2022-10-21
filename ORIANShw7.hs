@@ -1,5 +1,6 @@
 import Data.Char
 import Data.List
+import System.Win32.Exception.Unsupported (doesn'tSupport)
 
 type Vars = String
 data Prop = Var Vars | Const Bool | And Prop Prop | Or Prop Prop | Not Prop
@@ -47,6 +48,10 @@ lexer :: String -> [Token]
 --Base
 lexer "" = []
 lexer (c:s) | isSpace c = lexer s
+--tt
+lexer ( 't' : 't' : s) = CSym True : lexer s
+--ff
+lexer ( 'f' : 'f' : s) = CSym False : lexer s
 --VSym
 lexer (c:s) | isAlpha c =
   let (num,rst) = span (\x -> isAlphaNum x || x == '_') s
@@ -93,8 +98,7 @@ sr s (x:xs) = sr (x:s) xs
 sr s [] = error ("Parse error: " ++ show s)
 
 
---2.4 Searching for Truth Statment
-
+--2.4 Searching for Truth Statment done
 
 fv :: Prop -> [Vars]
 fv (Var v) = [v]
@@ -117,14 +121,75 @@ genEnvs (x:xs) = [ y:ys | y <- extend x, ys <- genEnvs xs ]
 extend :: Vars -> [(Vars, Bool)]
 extend x = [ (x,b) | b <- [True, False] ]
 
-evalAll :: Prop -> [Env] -> Env
-evalAll p [] = []
-evalAll p (key:keys) = if eval key p then key else evalAll p keys
+evalAll :: Prop -> [Env] -> Maybe Env
+evalAll p [] = Nothing
+evalAll p (key:keys) = if eval key p then Just key else evalAll p keys
 
 findSat :: Prop -> Maybe Env
-findSat x = evalAll x (genEnvs(fv x))
+findSat x = (evalAll x (genEnvs (fv x)))
 
 
---2.5 Putting it together
+--2.5 Putting it together done
 solve :: String -> String
-solve s = if(findsat(parseProp(lexer s))) then "Satisfiable" else "No Solution"
+solve s = if (findSat(parseProp(lexer s)) == Nothing) then "No solution." else "Satisfiable."
+
+
+--tests--
+
+
+tests =
+  [ ((eval [("E",True)] (And (And (Const True) (Imp (Var "E") (Var "E"))) (Const False))) == False)
+  , ((eval [("E",True),("A",False)] (Not (Xor (Imp (Var "E") (Var "A")) (Var "A")))) == True)
+  , ((eval [] (Const True)) == True)
+  , ((eval [("P",False),("T",False)] (Xor (Iff (And (Var "P") (Var "P")) (Xor (Var "T") (Var "P"))) (Const False))) == True)
+  , ((eval [("P",True),("T",True)] (Imp (And (Var "T") (Imp (Var "T") (Var "P"))) (Const True))) == True)
+  , ((eval [("D",False)] (Not (Const False))) == True)
+  , ((eval [("P",False),("T",True)] (Var "P")) == False)
+  , ((eval [("A",True)] (Var "A")) == True)
+  , ((eval [("X",True),("Y",False),("O",False),("E",False),("A",True),("D",False)] (And (Or (Or (Var "A") (Const False)) (Xor (Const False) (Const False))) (Var "X"))) == True)
+  , ((eval [] (Const False)) == False)
+  , ((lexer "((tt) /\\ ((Z) -> (D))) /\\ (ff)") == [LPar,LPar,CSym True,RPar,BOp AndOp,LPar,LPar,VSym "Z",RPar,BOp ImpOp,LPar,VSym "D",RPar,RPar,RPar,BOp AndOp,LPar,CSym False,RPar])
+  , ((lexer "!(((B) -> (H)) <+> (Z))") == [NotOp,LPar,LPar,LPar,VSym "B",RPar,BOp ImpOp,LPar,VSym "H",RPar,RPar,BOp XorOp,LPar,VSym "Z",RPar,RPar])
+  , ((lexer "tt") == [CSym True])
+  , ((lexer "(((C) /\\ (V)) <-> ((R) <+> (X))) <+> (ff)") == [LPar,LPar,LPar,VSym "C",RPar,BOp AndOp,LPar,VSym "V",RPar,RPar,BOp IffOp,LPar,LPar,VSym "R",RPar,BOp XorOp,LPar,VSym "X",RPar,RPar,RPar,BOp XorOp,LPar,CSym False,RPar])
+  , ((lexer "((O) /\\ ((D) -> (\1039))) -> (tt)") == [LPar,LPar,VSym "O",RPar,BOp AndOp,LPar,LPar,VSym "D",RPar,BOp ImpOp,LPar,VSym "\1039",RPar,RPar,RPar,BOp ImpOp,LPar,CSym True,RPar])
+  , ((lexer "!(ff)") == [NotOp,LPar,CSym False,RPar])
+  , ((lexer "J") == [VSym "J"])
+  , ((lexer "Z") == [VSym "Z"])
+  , ((lexer "(((G) \\/ (ff)) \\/ ((ff) <+> (ff))) /\\ (P)") == [LPar,LPar,LPar,VSym "G",RPar,BOp OrOp,LPar,CSym False,RPar,RPar,BOp OrOp,LPar,LPar,CSym False,RPar,BOp XorOp,LPar,CSym False,RPar,RPar,RPar,BOp AndOp,LPar,VSym "P",RPar])
+  , ((lexer "ff") == [CSym False])
+  , ((parseProp [LPar,LPar,CSym True,RPar,BOp AndOp,LPar,LPar,VSym "Z",RPar,BOp ImpOp,LPar,VSym "D",RPar,RPar,RPar,BOp AndOp,LPar,CSym False,RPar]) == And (And (Const True) (Imp (Var "Z") (Var "D"))) (Const False))
+  , ((parseProp [NotOp,LPar,LPar,LPar,VSym "B",RPar,BOp ImpOp,LPar,VSym "H",RPar,RPar,BOp XorOp,LPar,VSym "Z",RPar,RPar]) == Not (Xor (Imp (Var "B") (Var "H")) (Var "Z")))
+  , ((parseProp [CSym True]) == Const True)
+  , ((parseProp [LPar,LPar,LPar,VSym "C",RPar,BOp AndOp,LPar,VSym "V",RPar,RPar,BOp IffOp,LPar,LPar,VSym "R",RPar,BOp XorOp,LPar,VSym "X",RPar,RPar,RPar,BOp XorOp,LPar,CSym False,RPar]) == Xor (Iff (And (Var "C") (Var "V")) (Xor (Var "R") (Var "X"))) (Const False))
+  , ((parseProp [LPar,LPar,VSym "O",RPar,BOp AndOp,LPar,LPar,VSym "D",RPar,BOp ImpOp,LPar,VSym "\1039",RPar,RPar,RPar,BOp ImpOp,LPar,CSym True,RPar]) == Imp (And (Var "O") (Imp (Var "D") (Var "\1039"))) (Const True))
+  , ((parseProp [NotOp,LPar,CSym False,RPar]) == Not (Const False))
+  , ((parseProp [VSym "J"]) == Var "J")
+  , ((parseProp [VSym "Z"]) == Var "Z")
+  , ((parseProp [LPar,LPar,LPar,VSym "G",RPar,BOp OrOp,LPar,CSym False,RPar,RPar,BOp OrOp,LPar,LPar,CSym False,RPar,BOp XorOp,LPar,CSym False,RPar,RPar,RPar,BOp AndOp,LPar,VSym "P",RPar]) == And (Or (Or (Var "G") (Const False)) (Xor (Const False) (Const False))) (Var "P"))
+  , ((parseProp [CSym False]) == Const False)
+  , ((findSat (And (And (Const True) (Imp (Var "Z") (Var "D"))) (Const False))) == Nothing)
+  , ((findSat (Not (Xor (Imp (Var "B") (Var "H")) (Var "Z")))) == Just [("B",True),("H",True),("Z",True)])
+  , ((findSat (Const True)) == Just [])
+  , ((findSat (Xor (Iff (And (Var "C") (Var "V")) (Xor (Var "R") (Var "X"))) (Const False))) == Just [("C",True),("V",True),("R",True),("X",False)])
+  , ((findSat (Imp (And (Var "O") (Imp (Var "D") (Var "\1039"))) (Const True))) == Just [("O",True),("D",True),("\1039",True)])
+  , ((findSat (Not (Const False))) == Just [])
+  , ((findSat (Var "J")) == Just [("J",True)])
+ , ((findSat (Var "Z")) == Just [("Z",True)])
+  , ((findSat (And (Or (Or (Var "G") (Const False)) (Xor (Const False) (Const False))) (Var "P"))) == Just [("G",True),("P",True)])
+  , ((findSat (Const False)) == Nothing)
+  , ((solve "((tt) /\\ ((Z) -> (D))) /\\ (ff)") == "No solution.")
+  , ((solve "!(((B) -> (H)) <+> (Z))") == "Satisfiable.")
+  , ((solve "tt") == "Satisfiable.")
+  , ((solve "(((C) /\\ (V)) <-> ((R) <+> (X))) <+> (ff)") == "Satisfiable.")
+  , ((solve "((O) /\\ ((D) -> (\1039))) -> (tt)") == "Satisfiable.")
+  , ((solve "!(ff)") == "Satisfiable.")
+  , ((solve "J") == "Satisfiable.")
+  , ((solve "Z") == "Satisfiable.")
+  , ((solve "(((G) \\/ (ff)) \\/ ((ff) <+> (ff))) /\\ (P)") == "Satisfiable.")
+  , ((solve "ff") == "No solution.")
+  ]
+
+main = putStrLn $ show (length (filter id tests)) ++ '/' : show (length tests)
+
+getErrors = map fst . filter (not . snd) . zip [1..] $ tests
