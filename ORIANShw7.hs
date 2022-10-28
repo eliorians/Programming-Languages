@@ -1,6 +1,4 @@
 import Data.Char
-import Data.List
-import System.Win32.Exception.Unsupported (doesn'tSupport)
 
 type Vars = String
 data Prop = Var Vars | Const Bool | And Prop Prop | Or Prop Prop | Not Prop
