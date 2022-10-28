@@ -111,6 +111,8 @@ sat :: Prop -> Bool
 sat x = evalAll x (genEnvs( fv x))
 
 
+--tests
+
 tests =
   [ ((mapAppend show [1,23,456]) == "123456")
   , ((mapAppend (\c -> c : " ") "hello") == "h e l l o ")

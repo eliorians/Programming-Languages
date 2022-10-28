@@ -40,3 +40,51 @@ findEmpty = all null
 --10
 getLengths :: [String] -> [Int]
 getLengths = map length
+
+--testing
+main = do
+  putStrLn . show $ (radius 0.0 0.0) == 0.0
+  putStrLn . show $ (radius 0.5 0.5) == 0.7071067811865476
+  putStrLn . show $ (radius 1.0 1.0) == 1.4142135623730951
+  putStrLn . show $ (radius 2.5 3.0) == 3.905124837953327
+  putStrLn . show $ (radius (-1.0) (-1.0)) == 1.4142135623730951
+  putStrLn . show $ (radius (-1.0) (1.0)) == 1.4142135623730951
+  putStrLn . show $ (radius (-2.5) (-3.0)) == 3.905124837953327
+  putStrLn . show $ (radius (-2.5) (3.0)) == 3.905124837953327
+  putStrLn . show $ (radius' (0.0, 0.0)) == 0.0
+  putStrLn . show $ (radius' (0.5, 0.5)) == 0.7071067811865476
+  putStrLn . show $ (radius' (1.0, 1.0)) == 1.4142135623730951
+  putStrLn . show $ (radius' (2.5, 3.0)) == 3.905124837953327
+  putStrLn . show $ (radius' ((-1.0), (-1.0))) == 1.4142135623730951
+  putStrLn . show $ (radius' ((-1.0), (1.0))) == 1.4142135623730951
+  putStrLn . show $ (radius' ((-2.5), (-3.0))) == 3.905124837953327
+  putStrLn . show $ (radius' ((-2.5), (3.0))) == 3.905124837953327
+  putStrLn . show $ (sumEvens 0) == 0
+  putStrLn . show $ (sumEvens 5) == 6
+  putStrLn . show $ (sumEvens 8) == 20
+  putStrLn . show $ (sumEvens 12) == 42
+  putStrLn . show $ (sumEvens 15) == 56
+  putStrLn . show $ (sumEvens' 0) == 0
+  putStrLn . show $ (sumEvens' 5) == 6
+  putStrLn . show $ (sumEvens' 8) == 20
+  putStrLn . show $ (sumEvens' 12) == 42
+  putStrLn . show $ (sumEvens' 15) == 56
+  putStrLn . show $ (collatz 0) == 1
+  putStrLn . show $ (collatz 1) == 1
+  putStrLn . show $ (collatz 5) == 1
+  putStrLn . show $ (collatz 10) == 1
+  putStrLn . show $ (collatz 100) == 1
+  putStrLn . show $ (init' [0]) == []
+  putStrLn . show $ (init' [7]) == []
+  putStrLn . show $ (init' [0..4]) == [0,1,2,3]
+  putStrLn . show $ (init' [0..5]) == [0,1,2,3,4]
+  putStrLn . show $ (init' [3, 9, 0, 1, 3, 4]) == [3,9,0,1,3]
+  putStrLn . show $ (init' [2, 4, 9, 5, 7]) == [2,4,9,5]
+  putStrLn . show $ (findEmpty ["hello", "world", "testing", ""]) == True
+  putStrLn . show $ (findEmpty ["", "hello", "world", "testing"]) == True
+  putStrLn . show $ (findEmpty ["hello", "world", "", "testing"]) == True
+  putStrLn . show $ (findEmpty ["", "", "", ""]) == True
+  putStrLn . show $ (getLengths ["hello", "world"]) == [5,5]
+  putStrLn . show $ (getLengths ["", ""]) == [0,0]
+  putStrLn . show $ (getLengths ["", "hello world"]) == [0,11]
+  putStrLn . show $ (getLengths ["functional", "is", "fun"]) == [10,2,3]

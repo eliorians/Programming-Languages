@@ -134,7 +134,6 @@ solve s = if (findSat(parseProp(lexer s)) == Nothing) then "No solution." else "
 
 --tests--
 
-
 tests =
   [ ((eval [("E",True)] (And (And (Const True) (Imp (Var "E") (Var "E"))) (Const False))) == False)
   , ((eval [("E",True),("A",False)] (Not (Xor (Imp (Var "E") (Var "A")) (Var "A")))) == True)

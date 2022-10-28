@@ -80,3 +80,61 @@ encode xs (z:zs) = lookUp z xs : encode xs zs
 --3
 makeTable :: String -> String -> [(Char, Char)]
 makeTable = zip
+
+
+--testing
+tests =
+  [ ((bubble [0..5]) == [0,1,2,3,4,5])
+  , ((bubble [1,0,2,5,3,4]) == [0,1,2,3,4,5])
+  , ((bubble [5,4,3,2,1,0]) == [4,3,2,1,0,5])
+  , ((bubble [10]) == [10])
+  , ((bubble ['a']) == "a")
+  , ((bubbleSort [0..5]) == [0,1,2,3,4,5])
+  , ((bubbleSort [1,0,2,5,3,4]) == [0,1,2,3,4,5])
+  , ((bubbleSort [5,4,3,2,1,0]) == [0,1,2,3,4,5])
+  , ((bubbleSort [10]) == [10])
+  , ((bubbleSort ['a']) == "a")
+  , ((findString "" "hello") == True)
+  , ((findString "hey" "") == False)
+  , ((findString "hello" "hello world") == True)
+  , ((findString "de" "abcdef") == True)
+  , ((findString "hey" "hello world") == False)
+  , ((genSubstrings "") `setEq` [""])
+  , ((genSubstrings "abcd") `setEq` ["a","ab","abc","abcd","b","bc","bcd","c","cd","d",""])
+  , ((genSubstrings "hello") `setEq` ["h","he","hel","hell","hello","e","el","ell","ello","l","ll","llo","l","lo","o",""])
+  , ((genSubstrings "goodbye") `setEq` ["g","go","goo","good","goodb","goodby","goodbye","o","oo","ood","oodb","oodby","oodbye","o","od","odb","odby","odbye","d","db","dby","dbye","b","by","bye","y","ye","e",""])
+  , ((genSubstrings "haskell") `setEq` ["h","ha","has","hask","haske","haskel","haskell","a","as","ask","aske","askel","askell","s","sk","ske","skel","skell","k","ke","kel","kell","e","el","ell","l","ll","l",""])
+  , ((replacePrefix ("","fun") "ctional") == "functional")
+  , ((replacePrefix ("be","spe") "bear") == "spear")
+  , ((replacePrefix ("hel","jel") "hello") == "jello")
+  , ((replacePrefix ("know","") "knowledge") == "ledge")
+  , ((replacePrefix ("bel","pil") "bellow") == "pillow")
+  , ((replaceString ("be","spe") "") == "")
+  , ((replaceString ("hel","jel") "hello") == "jello")
+  , ((replaceString ("ledge","ing") "knowledge") == "knowing")
+  , ((replaceString ("crossing","castle") "crossing guard") == "castle guard")
+  , ((replaceString ("oon","rowni") "boone") == "brownie")
+  , ((lookUp 'c' [('x','c'), ('c','z')]) == 'z')
+  , ((lookUp 'c' [('a','z'), ('c','x'), ('b','y')]) == 'x')
+  , ((lookUp 'c' [('a','z'), ('b','y'), ('c','x')]) == 'x')
+  , ((lookUp 'b' [('a','z'), ('b','y'), ('c','x')]) == 'y')
+  , ((lookUp 'z' [('a','z'), ('z','b')]) == 'b')
+  , ((encode [(x,x) | x <- ['a'..'z']] "hello") == "hello")
+  , ((encode [('a','z'),('i','k'),('j','j'),('k','i')] "ijk") == "kji")
+  , ((encode [('a','1'), ('b','2'), ('c','3')] "abc") == "123")
+  , ((encode [('e','i'), ('l','p'), ('h','q'),('o','a')] "hello") == "qippa")
+  , ((encode [('b','y'), ('c','z'), ('a','z')] "abc") == "zyz")
+  , ((makeTable "" "xyzw") == [])
+  , ((makeTable "abcd" "") == [])
+  , ((makeTable "abcd" "xyzw") == [('a','x'),('b','y'),('c','z'),('d','w')])
+  , ((makeTable "abc" "xyzw") == [('a','x'),('b','y'),('c','z')])
+  , ((makeTable "abcd" "xyz") == [('a','x'),('b','y'),('c','z')])
+  ]
+
+subset :: (Eq a) => [a] -> [a] -> Bool
+subset = flip (all . (flip elem))
+
+setEq :: (Eq a) => [a] -> [a] -> Bool
+setEq l1 l2 = subset l1 l2 && subset l2 l1
+
+main = putStrLn $ show (length (filter id tests)) ++ '/' : show (length tests)
