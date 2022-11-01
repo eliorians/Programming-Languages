@@ -1,4 +1,4 @@
---module Prop where
+module Prop where
 import Data.Char
 import Data.List
 
@@ -26,7 +26,7 @@ loop def = do
   cmd <- getLine
   case words cmd of
     ("let" : s)    -> case parseDef (lexer (drop 3 cmd)) of 
-                      Left (n,p) -> (putStrLn $ "Defined " ++ n ++ " as " ++ show p) >> loop ((n,p): def)
+                      Left (n,p) -> (putStrLn (show p)) >> loop ((n,p): def)
                       Right e    -> putStrLn e >> loop def
     ["print", f]   -> case lookup f def of
                       Just p  -> putStrLn (show p) >> loop def 
@@ -48,46 +48,43 @@ loop def = do
                         Just p2 -> if tauto(Iff p1 p2) == "Yes" then putStrLn "Yes" else putStrLn "No" >> loop def
                         Nothing -> putStrLn ("Cannot find name " ++ g) >> loop def
                       Nothing -> putStrLn ("Cannot find name " ++ f) >> loop def
-    --todo subst/replace
     ["subst", x, "with", f, "in", g] -> case lookup f def of
           Just p1  -> case lookup g def of
-                Just p2 -> putStrLn (replace x p1 p2)
+                Just p2 -> putStrLn (show (replace x p1 p2)) >> loop def
                 Nothing -> putStrLn ("Cannot find name " ++ g) >> loop def
           Nothing  -> putStrLn ("Cannot find name " ++ f) >> loop def
-    --todo load/parseLines
     ["load", f] -> do
       input <- readFile f
       let ls = lines input
       let pl = parseLines ls
       case pl of
         Left p -> loop p
-        Right p -> loop def
-    ["quit"] -> putStrLn ("Quiting...") >> return ()
-    _ -> putStrLn "Command unrecognized, try again" >> loop def
+        Right p -> putStrLn p >> loop def
+    ["quit"] -> putStrLn "Bye!" >> return ()
+    _ -> putStrLn "Unrecognized command." >> loop def
+
+
+replace :: Vars -> Prop -> Prop -> Prop
+replace x f (Var g) = if g == x then f else Var g
+replace x f (Const g) = Const g
+replace x f (And g1 g2) = And (replace x f g1) (replace x f g2)
+replace x f (Or g1 g2) = Or (replace x f g1) (replace x f g2)
+replace x f (Imp g1 g2) = Imp (replace x f g1) (replace x f g2)
+replace x f (Iff g1 g2) = Iff (replace x f g1) (replace x f g2)
+replace x f (Xor g1 g2) = Xor (replace x f g1) (replace x f g2)
+replace x f (Not g) = Not (replace x f g)
 
 
 --3 File I/O
 parseLines :: [String] -> Either Def String
 parseLines (s : lines) = case lexer s of
-  (VSym v : EqSym : rst) -> case parseDef rst of 
+  (NSym v : EqSym : rst) -> case parseProp rst of 
                         Left p -> case parseLines lines of
-                          Left p2  -> Left (p : p2)
+                          Left p2  -> Left ((v, p) : p2)
                           Right e2 -> Right e2
                         Right e -> Right e
+  e -> Right ("Error in parseLines " ++ show e)
 parseLines [] = Left []
-
-
--- Homework 7 Setup --
-
-propToString :: Prop -> String
-propToString (Var x) = x
-propToString (Const x) = if x then "tt" else "ff"
-propToString (And x y) = propToString x ++ " /\\ " ++ propToString y
-propToString (Or x y) = propToString x ++ " \\/ " ++ propToString y
-propToString (Imp x y) = propToString x ++ " -> " ++ propToString y
-propToString (Iff x y) = propToString x ++ " <-> " ++ propToString y
-propToString (Xor x y) = propToString x ++ " <+> " ++ propToString y
-propToString (Not x) = "!"
 
 
 -- Propositional Logic setup
@@ -208,12 +205,5 @@ tauto p =  case (and [eval x p | x <- genEnvs (fv p)]) of
               True -> "Yes"
               False  -> "No"
 
--- Testing examples
-prop1 = Var "X" `And` Var "Y"
-prop2 = Var "X" `Imp` Var "Y"
-prop3 = Not (Var "X") `Or` (Var "Y")
-prop4 = Not (Var "X") `Iff` Not (Var "Y")
-
 
 --tests--
-
