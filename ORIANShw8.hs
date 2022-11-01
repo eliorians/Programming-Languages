@@ -1,30 +1,104 @@
-module Prop where
+--module Prop where
 import Data.Char
 import Data.List
 
 
-
 -- 2 Read-eval-print loop
+main :: IO ()
+main = loop []
 
+--Either a b = Left a | Right b
+parseProp :: [Token] -> Either Prop String
+parseProp ts = case sr [] ts of
+  [PB e] -> Left e
+  [Err m] -> Right m
+  s      -> Right (error "Parse error" ++ show s)
+
+parseDef :: [Token] -> Either (Name,Prop) String
+parseDef  (NSym n : EqSym : ts) = case parseProp ts of
+                            (Left p) -> Left (n,p)
+                            Right e  -> Right e
+parseDef inp = Right ("Error in definition syntax: " ++ show inp)
+
+
+loop :: Def -> IO ()
+loop def = do
+  cmd <- getLine
+  case words cmd of
+    ("let" : s)    -> case parseDef (lexer (drop 3 cmd)) of 
+                      Left (n,p) -> (putStrLn $ "Defined " ++ n ++ " as " ++ show p) >> loop ((n,p): def)
+                      Right e    -> putStrLn e >> loop def
+    ["print", f]   -> case lookup f def of
+                      Just p  -> putStrLn (show p) >> loop def 
+                      Nothing -> putStrLn ("Cannot find name " ++ f) >> loop def
+    ["vars", f]    -> case lookup f def of
+                    Just p  -> putStrLn (show (fv p)) >> loop def 
+                    Nothing -> putStrLn ("Cannot find name " ++ f) >> loop def
+    ["sat", f]     -> case lookup f def of
+                    Just p  -> putStrLn (sat p) >> loop def 
+                    Nothing -> putStrLn ("Cannot find name " ++ f) >> loop def
+    ["tauto", f]   -> case lookup f def of
+                    Just p  -> putStrLn (tauto p) >> loop def 
+                    Nothing -> putStrLn ("Cannot find name " ++ f) >> loop def
+    ["solve", f]   -> case lookup f def of
+                    Just p  -> putStrLn (solve p) >> loop def 
+                    Nothing -> putStrLn ("Cannot find name " ++ f) >> loop def
+    ["eq", f, g]   -> case lookup f def of
+                      Just p1 -> case lookup g def of
+                        Just p2 -> if tauto(Iff p1 p2) == "Yes" then putStrLn "Yes" else putStrLn "No" >> loop def
+                        Nothing -> putStrLn ("Cannot find name " ++ g) >> loop def
+                      Nothing -> putStrLn ("Cannot find name " ++ f) >> loop def
+    --todo subst/replace
+    ["subst", x, "with", f, "in", g] -> case lookup f def of
+          Just p1  -> case lookup g def of
+                Just p2 -> putStrLn (replace x p1 p2)
+                Nothing -> putStrLn ("Cannot find name " ++ g) >> loop def
+          Nothing  -> putStrLn ("Cannot find name " ++ f) >> loop def
+    --todo load/parseLines
+    ["load", f] -> do
+      input <- readFile f
+      let ls = lines input
+      let pl = parseLines ls
+      case pl of
+        Left p -> loop p
+        Right p -> loop def
+    ["quit"] -> putStrLn ("Quiting...") >> return ()
+    _ -> putStrLn "Command unrecognized, try again" >> loop def
 
 
 --3 File I/O
+parseLines :: [String] -> Either Def String
+parseLines (s : lines) = case lexer s of
+  (VSym v : EqSym : rst) -> case parseDef rst of 
+                        Left p -> case parseLines lines of
+                          Left p2  -> Left (p : p2)
+                          Right e2 -> Right e2
+                        Right e -> Right e
+parseLines [] = Left []
 
 
+-- Homework 7 Setup --
 
+propToString :: Prop -> String
+propToString (Var x) = x
+propToString (Const x) = if x then "tt" else "ff"
+propToString (And x y) = propToString x ++ " /\\ " ++ propToString y
+propToString (Or x y) = propToString x ++ " \\/ " ++ propToString y
+propToString (Imp x y) = propToString x ++ " -> " ++ propToString y
+propToString (Iff x y) = propToString x ++ " <-> " ++ propToString y
+propToString (Xor x y) = propToString x ++ " <+> " ++ propToString y
+propToString (Not x) = "!"
 
-
-
-
--- ! Homework 7 Setup ! --
 
 -- Propositional Logic setup
+type Name = String
 type Vars = String
 data Prop = Var Vars | Const Bool | And Prop Prop | Or Prop Prop | Not Prop
           | Imp Prop Prop | Iff Prop Prop | Xor Prop Prop
   deriving (Show,Eq)
 
 type Env = [(Vars,Bool)]
+type Def = [(Name, Prop)]
 
 lookUp :: Vars -> [(Vars,Bool)] -> Bool
 lookUp x [] = error ("Cannot find variable " ++ x ++ " in the environment.")
@@ -52,7 +126,10 @@ data BOps = AndOp | OrOp | ImpOp | IffOp | XorOp
 -- the type of tokens
 data Token = VSym Vars | CSym Bool | BinOp BOps | NotOp | LPar | RPar
            | PB Prop  -- a token to store parsed boolean expressions
+           | Err String
+           | NSym Name | EqSym 
   deriving (Show,Eq)
+
 
 lexer :: String -> [Token]
 lexer ""                = []
@@ -64,20 +141,19 @@ lexer ('-':'>'     : s) = BinOp ImpOp : lexer s
 lexer ('<':'-':'>' : s) = BinOp IffOp : lexer s
 lexer ('<':'+':'>' : s) = BinOp XorOp : lexer s
 lexer ('!'         : s) = NotOp       : lexer s
+lexer ('='         : s) = EqSym       : lexer s
 lexer ('t':'t'     : s) = CSym True   : lexer s
 lexer ('f':'f'     : s) = CSym False  : lexer s
 lexer (c:s) | isUpper c = let (var,rst) = span isAlphaNum s
                            in VSym (c:var) : lexer rst
+lexer (c:s) | isLower c = let (var,rst) = span isAlphaNum s
+                           in NSym (c:var) : lexer rst
 lexer (c:s) | isSpace c = lexer s
 lexer s = error ("Lexical error: " ++ s)
 
 -- 2.3 Parser
 
-parseProp :: [Token] -> Prop
-parseProp ts = sr [] ts
-
-sr :: [Token] -> [Token] -> Prop
-sr [PB e]                           [] = e
+sr :: [Token] -> [Token] -> [Token]
 sr (VSym x : s)                      q = sr (PB (Var x)     : s) q
 sr (CSym y : s)                      q = sr (PB (Const y)   : s) q
 sr (PB e2 : BinOp AndOp : PB e1 : s) q = sr (PB (And e1 e2) : s) q
@@ -88,7 +164,8 @@ sr (PB e2 : BinOp XorOp : PB e1 : s) q = sr (PB (Xor e1 e2) : s) q
 sr (PB e : NotOp : s)                q = sr (PB (Not e)     : s) q
 sr (RPar : PB e : LPar : s)          q = sr (PB e           : s) q
 sr s                             (x:q) = sr (x:s)                q
-sr s                                [] = error ("Parse error: " ++ show s)
+sr (Err m : s)                       q = [Err m]
+sr s                                [] = s
 
 -- 2.4 Finding a satisfying assignment
 
@@ -113,14 +190,30 @@ findSat p = find (flip eval p) (genEnvs (fv p))
 
 -- 2.5 Putting it all together
 
-solve :: String -> String
-solve s = case (findSat (parseProp (lexer s))) of
-  Nothing -> "No solution."
-  Just _  -> "Satisfiable."
+--previously called solve
+sat :: Prop -> String
+sat p = case (findSat p) of
+              Nothing -> "No"
+              Just _  -> "Yes"
 
+--sat but you return the string
+solve :: Prop -> String
+solve p = case (findSat p) of
+              Nothing -> "No Solution"
+              Just x  -> show x
+
+
+tauto :: Prop -> String
+tauto p =  case (and [eval x p | x <- genEnvs (fv p)]) of
+              True -> "Yes"
+              False  -> "No"
 
 -- Testing examples
 prop1 = Var "X" `And` Var "Y"
 prop2 = Var "X" `Imp` Var "Y"
 prop3 = Not (Var "X") `Or` (Var "Y")
 prop4 = Not (Var "X") `Iff` Not (Var "Y")
+
+
+--tests--
+

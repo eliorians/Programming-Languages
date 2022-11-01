@@ -1,0 +1,6 @@
+f = X <+> !X
+g = X /\ Y
+h = X \/ Y
+i = X /\ ff -> Z
+j = !X <-> Y
+k = tt

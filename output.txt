@@ -1,0 +1,40 @@
+andrewpolonsky@redshift hw8testcases % cat hw8cases.txt | runhaskell hw8solutions.hs
+Xor (Var "X") (Not (Var "X"))
+And (Var "X") (Var "Y")
+Or (Var "X") (Var "Y")
+X
+X Y
+X Y
+Yes
+Yes
+Yes
+Yes
+No
+No
+No
+Yes
+And (Xor (Var "X") (Not (Var "X"))) (Var "Y")
+And (Var "X") (Xor (Var "X") (Not (Var "X")))
+And (Var "X") (And (Var "X") (Var "Y"))
+Or (Var "X") (Var "Y")
+Unrecognized command.
+Imp (And (Var "X") (Const False)) (Var "Z")
+Iff (Not (Var "X")) (Var "Y")
+Const True
+X Z
+X Y
+
+Yes
+Yes
+Yes
+Yes
+No
+Yes
+Yes
+Yes
+Yes
+No
+Imp (And (Const True) (Const False)) (Var "Z")
+Xor (Var "X") (Not (Var "X"))
+Bye!
+andrewpolonsky@redshift hw8testcases % 

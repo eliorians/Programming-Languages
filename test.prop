@@ -1,0 +1,4 @@
+prop1 = X /\ Y
+prop2 = X -> Y
+prop3 = !X \/ Y
+prop4 = !X <-> !Y

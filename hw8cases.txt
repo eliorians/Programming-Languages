@@ -1,0 +1,42 @@
+let f = X <+> !X
+let g = X /\ Y
+let h = X \/ Y
+print f
+print g
+print h
+vars f
+vars g
+vars h
+sat f
+sat g
+sat h
+tauto f
+tauto g
+tauto h
+eq f g
+eq h h
+subst X with f in g
+subst Y with f in g
+subst Y with g in g
+subst Z with h in h
+
+load file1.prop
+print i
+print j
+print k
+vars i
+vars j
+vars k
+sat i
+sat j
+sat k
+tauto i
+tauto j
+tauto k
+eq f k
+eq i k
+eq f i
+eq h j
+subst X with k in i
+subst Z with k in f
+quit
