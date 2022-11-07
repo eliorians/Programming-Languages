@@ -1,3 +1,4 @@
+
 module Prop where
 import Data.Char
 import Data.List

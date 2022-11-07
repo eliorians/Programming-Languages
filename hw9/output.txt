@@ -1,0 +1,11 @@
+echo test1.imp | runhaskell hw9solutions.hs && echo test2.imp | runhaskell hw9solutions.hs && echo test3.imp | runhaskell hw9solutions.hs && echo test4.imp | runhaskell hw9solutions.hs && echo test5.imp | runhaskell hw9solutions.hs
+Enter a file to load
+[("x",11),("y",2047)]
+Enter a file to load
+[("x",10),("y",20)]
+Enter a file to load
+[("x",-10),("y",11),("z",7),("w",0)]
+Enter a file to load
+[("n",23),("m",1),("prime",1)]
+Enter a file to load
+[("t",5),("u",30),("v",50),("a",4),("d",15000)]
