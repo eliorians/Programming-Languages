@@ -84,10 +84,10 @@ execIf :: BExpr -> Instr -> Instr -> Env -> Env
 execIf b i1 i2 env = if (evalb env b) then exec i1 env else exec i2 env
 
 execWhile :: BExpr -> Instr -> Env -> Env
-execWhile b i env = if (evalb env b) then exec i env >> exec (While b i) (exec i env) else exec Nop env
+execWhile b i env = if (evalb env b) then exec (While b i) (exec i env) else exec Nop env
 
 execDo :: [Instr] -> Env -> Env
-execDo (i:is) env = exec i env >> exec (Do is) (exec i env)
+execDo (i:is) env = exec (Do is) (exec i env)
 execDo [] env = exec Nop env
 
 
@@ -188,6 +188,7 @@ sr (PB p2 : BOp OrOp : PB p1 : s) ts = sr (PB (Or p1 p2) : s) ts
 sr (PA p2 : BOp EqOp : PA p1 : s) ts = sr (PB (Eq p1 p2) : s) ts
 sr (PA p2 : BOp LtOp : PA p1 : s) ts = sr (PB (Lt p1 p2) : s) ts
 sr (PA p2 : BOp LteOp : PA p1 : s) ts = sr (PB (Lte p1 p2) : s) ts
+sr (PB p1 : UOp NotOp : s) ts = sr (PB (Not p1) : s) ts
 --Pars
 sr (RPar : PI e : LPar : s) ts = sr (PI e : s) ts
 sr (RPar : PA e : LPar : s) ts = sr (PA e : s) ts
@@ -196,7 +197,7 @@ sr (RPar : PB e : LPar : s) ts = sr (PB e : s) ts
 sr (Block is : LBra : s) ts = sr (PI (Do is): s) ts
 sr (Block is : Semi : PI i : s) ts = sr (Block (i:is): s) ts
 sr (RBra : PI i : s) ts = sr (Block [i] : s) ts
---sr (RBra : s) ts = sr (Block []:s) ts
+sr (RBra : s) ts = sr (Block []:s) ts
 --keywords
 sr (PA p : AssignOp : PA (Var x) : s) ts = sr (PI (Assign x p) : s) ts
 sr (PI i : PB b : Keyword WhileK : s) ts = sr (PI (While b i) : s) ts
