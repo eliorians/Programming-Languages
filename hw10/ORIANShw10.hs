@@ -32,7 +32,7 @@ unitFTree x = Leaf x
 
 bindFTree :: (a -> FTree b) -> FTree a -> FTree b
 bindFTree f (Leaf x) = f x
-bindFTree f (Node x:xs) = map (bindFTree f) xs
+bindFTree f (Node xs) = Node (map (bindFTree f) xs)
 
 instance Functor FTree where
     fmap f = bindFTree (unitFTree . f)
@@ -90,8 +90,8 @@ bindLam f (App x y) = App (bindLam f x) (bindLam f y)
 bindLam f (Abs x) = Abs (bindLam (lift f) x)
 
 lift :: (a -> Lam b) -> Maybe a -> Lam (Maybe b)
-lift f (Just a)  =  fmap (a) (f a)
-lift f Nothing = Nothing
+lift f (Just a)  = fmap Just (f a)
+lift f Nothing = Var Nothing
 
 instance Functor Lam where
     fmap f = bindLam (unitLam . f)
@@ -112,7 +112,17 @@ lam = App (Var True) (Abs (App (Var (Just False)) (Var Nothing)))
 
 data Poly a = Mono Double [a] | Sum (Poly a) (Poly a)
 
---unitPoly :: a -> Poly a
---unitPoly x = Mono x
+unitPoly :: a -> Poly a
+unitPoly x = Mono 1.0 [x]
 
---bindPoly :: (a -> Poly b) -> Poly a -> Poly b
+bindPoly :: (a -> Poly b) -> Poly a -> Poly b
+bindPoly f (Mono x y) = foldr (multPoly) (Mono x []) (map f y)
+bindPoly f (Sum x y)  = Sum (bindPoly f x) (bindPoly f y)
+
+multPoly :: Poly a -> Poly a -> Poly a 
+multPoly a (Mono x y) = multMono x y a
+multPoly a (Sum x y)  = Sum (multPoly a x) (multPoly a y)
+
+multMono :: Double -> [a] -> Poly a -> Poly a 
+multMono d ls (Mono x y) = (Mono (d*x) (ls ++ y))
+multMono d ls (Sum x y)  = Sum (multMono d ls x) (multMono d ls y)
