@@ -90,9 +90,10 @@ sr (VSym x : s) q = sr (PT (Var x) : s) q
 --CSym
 sr (CSym x : s) q = sr (PT (Const x) : s) q
 --Ops
+sr (RPar : PT e1 : LPar : YComb : s) q = sr (PT e1 : PT Y : s) q
 sr (PT e2 : AddOp : PT e1 : s) q = sr (PT (Add e1 e2) : s) q
 sr (PT e2 : PT e1 : s) q = sr (PT (App e1 e2) : s) q
-sr (PT e : Dot : VSym x : Backslash : s) q = sr (PT (Abs (capture x e)) : s) q
+sr (PT e : Dot : PT(Var x) : Backslash : s) q = sr (PT (Abs (capture x e)) : s) q
 sr (RPar : PT e3 : Comma : PT e2 : Comma : PT e1 : LPar : IfZeroOp : s) q = sr (PT (IfZero e1 e2 e3) : s) q
 --Punctuation
 sr (RPar : PT e : LPar : s) q = sr (PT e : s) q
@@ -112,29 +113,26 @@ subst :: Terms (Maybe a) -> Terms a -> Terms a
 subst s t = s >>= maybe t Var
 
 predstep :: Terms a -> Terms a
-predstep (Var x) = Var x
-predstep (Const x) = Const x
+predstep (App Y x) = App x (App Y x)
 predstep (App (Abs x) t) = subst x t
-predstep (Abs x) = Abs (predstep x)
-predstep (Add x y) = Add (predstep x) (predstep y)
-predstep (App x y) = App (predstep x) (predstep y)
-predstep (IfZero x y z) = IfZero (predstep x) (predstep y) (predstep z)
-predstep Y = Y
+predstep (Add (Const x) (Const y)) = Const (x+y)
+predstep (IfZero (Const 0) y z) = predstep y
+predstep (IfZero (Const x) y z) = predstep z
+--predstep (IfZero x y z) = IfZero (predstep x) (predstep y) (predstep z)
+predstep t = t
 
 preds :: Eq a => Terms a -> Terms a
 preds t = case predstep t of
+  (App Y t) -> App t (App Y t)
   (Var x) -> Var x
   (Const x) -> Const x
-  (Abs x) -> Abs x
+  (Abs x) -> Abs (preds x)
   (Add x y) -> Add (preds x) (preds y)
   (App x y) -> App (preds x) (preds y)
-  (IfZero x y z) -> IfZero (preds x) (preds y) (preds z)
-  Y -> Y
-
-
--- #4 Typing & Computation --
-
-
+  (IfZero (Const 0) y z) -> preds y
+  (IfZero (Const x) y z) -> preds z
+  --(IfZero x y z) -> IfZero (preds x) (preds y) (preds z)
+  t -> preds t
 
 
 -- Testing --
@@ -196,4 +194,3 @@ main = do
             "quit" -> return ()
             "new" -> main
     repl (readTerm s)
-
