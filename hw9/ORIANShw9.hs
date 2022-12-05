@@ -68,7 +68,6 @@ update (x,v) [] = [(x,v)]
 update (x,v) ((y,w):es) | x == y = (x,v) : es
                         | otherwise = (y,w) : update (x,v) es
 
-
 exec :: Instr -> Env -> Env
 exec (Assign v a) env = update (v, evala env a) env
 exec (IfThenElse b i1 i2) env = execIf b i1 i2 env
